@@ -14,12 +14,12 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Define browser extension directories (platform-specific)
-CHROME_EXTENSIONS_DIR_WINDOWS = os.path.join(os.environ['LOCALAPPDATA'], 'Google', 'Chrome', 'User Data', 'Default', 'Extensions')
+CHROME_EXTENSIONS_DIR_WINDOWS = os.path.join(os.environ.get('LOCALAPPDATA', ''), 'Google', 'Chrome', 'User Data', 'Default', 'Extensions')
 CHROME_EXTENSIONS_DIR_LINUX = os.path.expanduser("~/.config/google-chrome/Default/Extensions")
 CHROME_EXTENSIONS_DIR_MAC = os.path.expanduser("~/Library/Application Support/Google/Chrome/Default/Extensions")
 
 
-FIREFOX_EXTENSIONS_DIR_WINDOWS = os.path.join(os.environ['APPDATA'], 'Mozilla', 'Firefox', 'Profiles') # requires profile parsing
+FIREFOX_EXTENSIONS_DIR_WINDOWS = os.path.join(os.environ.get('APPDATA', ''), 'Mozilla', 'Firefox', 'Profiles') # requires profile parsing
 FIREFOX_EXTENSIONS_DIR_LINUX = os.path.expanduser("~/.mozilla/firefox")  #requires profile parsing
 FIREFOX_EXTENSIONS_DIR_MAC = os.path.expanduser("~/Library/Application Support/Firefox/Profiles") # requires profile parsing
 
