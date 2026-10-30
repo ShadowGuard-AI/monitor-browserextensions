@@ -1,3 +1,5 @@
+![Banner](banner.png)
+
 # monitor-browserextensions
 Monitors the installation, removal, and modification of browser extensions across different browsers. - Focused on System monitoring and alerts
 
