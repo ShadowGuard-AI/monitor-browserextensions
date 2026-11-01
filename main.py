@@ -10,6 +10,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # Define browser extension directories (platform-specific)
 CHROME_EXTENSIONS_DIR_WINDOWS = os.path.join(os.environ.get('LOCALAPPDATA', ''), 'Google', 'Chrome', 'User Data', 'Default', 'Extensions')
+# Every built in Chrome path names the Default profile only.
+# Extensions installed under Profile 1 or any later profile
+# are outside what I watch unless the operator points me at
+# that directory by hand.
 CHROME_EXTENSIONS_DIR_LINUX = os.path.expanduser("~/.config/google-chrome/Default/Extensions")
 CHROME_EXTENSIONS_DIR_MAC = os.path.expanduser("~/Library/Application Support/Google/Chrome/Default/Extensions")
 
@@ -64,6 +68,10 @@ def get_chrome_extensions_status(extensions_dir):
                 manifest = os.path.join(entry_path, version, "manifest.json")
                 marker = ""
                 if os.path.exists(manifest):
+                    # The marker is the manifest's modification time, nothing
+                    # about its contents. Touching the file, or a tool rewriting
+                    # it byte for byte, registers as an extension change, and an
+                    # edit that preserves the timestamp registers as none.
                     marker = f"@{os.path.getmtime(manifest)}"
                 extensions.append(f"{entry}/{version}{marker}")
         logging.debug(f"Found chrome extensions: {extensions}")
@@ -83,6 +91,11 @@ def _firefox_profile_addons(profile_path, profile_name):
     """Parses one profile's extensions.json into monitored addon entries."""
     extensions_json = os.path.join(profile_path, "extensions.json")
     if not os.path.exists(extensions_json):
+        # A profile whose extensions.json is corrupt returns the
+        # same empty list as a profile with no addons, and the caller
+        # keeps status read. The monitor then reports every addon in
+        # that profile as removed, when the truth is that I stopped
+        # being able to read the list.
         return []
     try:
         with open(extensions_json, "r") as file:
@@ -101,6 +114,11 @@ def _firefox_profile_addons(profile_path, profile_name):
             addon_id = default_locale.get("name")
         if not addon_id:
             continue
+        # State here is identity plus version. An addon being
+        # disabled or enabled changes neither, so the toggle that
+        # matters most for a suspicious extension is the one change
+        # I cannot see; a reinstall on the same version is equally
+        # invisible.
         entries.append(f"{profile_name}:{addon_id}@{addon.get('version', '')}")
     return entries
 
@@ -162,6 +180,10 @@ def get_any_extensions_status(extensions_dir):
         except OSError as e:
             logging.error(f"Error accessing extensions directory: {e}")
             return None, "error"
+    # Inference falls through to Chrome for anything it cannot
+    # prove is Firefox, including a directory it could not list
+    # at all. A missing custom directory is therefore reported
+    # through the Chrome getter's wording, whatever it held.
     return get_chrome_extensions_status(extensions_dir)
 
 
